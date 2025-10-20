@@ -294,7 +294,7 @@ mod build_linked {
             return HeaderLocation::Wrapper;
         }
         // Allow users to specify where to find DuckDB.
-        if let Ok(dir) = env::var(format!("{}_LIB_DIR", env_prefix())) {
+        if let Ok(Some(dir)) = env::current_dir().map(|d| d.to_str().map(ToString::to_string)) {
             println!("cargo:rustc-env=LD_LIBRARY_PATH={dir}");
             // Try to use pkg-config to determine link commands
             let pkgconfig_path = Path::new(&dir).join("pkgconfig");
@@ -313,6 +313,8 @@ mod build_linked {
 
             return HeaderLocation::FromEnvironment;
         }
+
+        panic!("Couldn't use instrumented libduckdb?");
 
         if let Some(header) = try_vcpkg() {
             return header;
