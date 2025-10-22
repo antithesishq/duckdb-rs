@@ -125,6 +125,8 @@ mod build_bundled {
 
         let mut cfg = cc::Build::new();
 
+        cfg.flag("-fsanitize-coverage=trace-pc-guard").flag(concat!("-L", env!("CARGO_MANIFEST_DIR"))).flag("-lvoidstar").flag("-Wl,--build-id");
+
         add_extension(&mut cfg, &manifest, "core_functions", &mut cpp_files, &mut include_dirs);
 
         #[cfg(feature = "parquet")]
@@ -175,6 +177,11 @@ mod build_bundled {
         cfg.compile(lib_name);
 
         println!("cargo:lib_dir={out_dir}");
+
+        // N.B. `cc` above does the link directives for us, so all we need to do
+        // is put this afterwards (not before!) and everything is good. :)
+        println!(concat!("cargo:rustc-link-search=", env!("CARGO_MANIFEST_DIR")));
+        println!("cargo:rustc-link-lib=dylib=voidstar");
     }
 }
 
